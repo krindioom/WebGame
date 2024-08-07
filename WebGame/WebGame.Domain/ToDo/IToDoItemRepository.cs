@@ -1,6 +1,6 @@
 ﻿namespace WebGame.Domain.ToDo;
 
-public interface IToDoItemRepository : IRepository<Domain.ToDoItem, int>
+public interface IToDoItemRepository : IRepository<ToDoItem, int>
 {
 
 }

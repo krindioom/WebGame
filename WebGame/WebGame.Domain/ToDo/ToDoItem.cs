@@ -3,70 +3,67 @@ using WebGame.Domain.Enums;
 
 namespace WebGame.Domain.ToDo;
 
-public partial class Domain
+public class ToDoItem : IEntity<int>
 {
-    public class ToDoItem : IEntity<int>
+    public int Id { get; }
+    public string? Name;
+    public string? Description { get; }
+    public TodoStatus? Status { get; private set; }
+    public DateTime? CreatedAt { get; }
+    public DateTime? DueDate { get; private set; }
+
+    private ToDoItem(int id, string name, string description, DateTime dueDate)
     {
-        public int Id { get; }
-        public string? Name;
-        public string? Description { get; }
-        public TodoStatus? Status { get; private set; }
-        public DateTime? CreatedAt { get; }
-        public DateTime? DueDate { get; private set; }
+        Id = id;
+        Description = description;
+        Name = name;
+        Status = TodoStatus.None;
+        CreatedAt = DateTime.UtcNow;
+        DueDate = dueDate;
+    }
 
-        private ToDoItem(int id, string name, string description, DateTime dueDate)
+    public static Result<ToDoItem> Create(int id, string name, string description, DateTime dueDate)
+    {
+        if (string.IsNullOrEmpty(name))
         {
-            Id = id;
-            Description = description;
-            Name = name;
-            Status = TodoStatus.None;
-            CreatedAt = DateTime.UtcNow;
-            DueDate = dueDate;
+            return Result.Failure<ToDoItem>("Название должно быть не пустым");
         }
 
-        public static Result<ToDoItem> Create(int id, string name, string description, DateTime dueDate)
+        if (dueDate < DateTime.UtcNow)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                return Result.Failure<ToDoItem>("Название должно быть не пустым");
-            }
-
-            if (dueDate < DateTime.UtcNow)
-            {
-                return Result.Failure<ToDoItem>("Дата окончания должна быть больше текщей");
-            }
-
-            var toDo = new ToDoItem(id, name, description, dueDate);
-
-            return Result.Success(toDo);
+            return Result.Failure<ToDoItem>("Дата окончания должна быть больше текщей");
         }
 
-        public Result UpdateName(string newName)
-        {
-            if (string.IsNullOrEmpty(newName))
-            {
-                return Result.Failure("новое имя не должно быть пустым");
-            }
+        var toDo = new ToDoItem(id, name, description, dueDate);
 
-            Name = newName;
-            return Result.Success();
+        return Result.Success(toDo);
+    }
+
+    public Result UpdateName(string newName)
+    {
+        if (string.IsNullOrEmpty(newName))
+        {
+            return Result.Failure("новое имя не должно быть пустым");
         }
 
-        public Result Complete()
+        Name = newName;
+        return Result.Success();
+    }
+
+    public Result Complete()
+    {
+        Status = TodoStatus.Done;
+        return Result.Success();
+    }
+
+    public Result ChangeDueDate(DateTime newDueDateTime)
+    {
+        if (newDueDateTime < CreatedAt)
         {
-            Status = TodoStatus.Done;
-            return Result.Success();
+            return Result.Failure("дата окончания не может быть меньше даты начала");
         }
 
-        public Result ChangeDueDate(DateTime newDueDateTime)
-        {
-            if (newDueDateTime < CreatedAt)
-            {
-                return Result.Failure("дата окончания не может быть меньше даты начала");
-            }
-
-            DueDate = newDueDateTime;
-            return Result.Success();
-        }
+        DueDate = newDueDateTime;
+        return Result.Success();
     }
 }
