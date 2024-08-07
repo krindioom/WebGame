@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
+using System.Reflection;
 using WebGame.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +10,11 @@ var dbConnection = builder.Configuration;
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
     opt.UseSqlite(dbConnection.GetConnectionString("DefaultConnection"));
+});
+
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly());
 });
 
 builder.Services.AddControllers();
